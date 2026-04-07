@@ -167,7 +167,7 @@ export default function AccountCreationPage() {
 
     const savedRole = localStorage.getItem('selectedRole')
     if (savedRole === 'Dining Hall Staff') {
-      router.push('/staff/scan')
+      router.push('/staff/home')
     } else if (savedRole === 'Admin / Dietitian') {
       router.push('/admin/dashboard')
     } else {

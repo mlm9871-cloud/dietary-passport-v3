@@ -80,7 +80,11 @@ export default function RoleSelectionPage() {
 
   function handleContinue() {
     localStorage.setItem('selectedRole', selected)
-    router.push('/onboarding/account-creation')
+    if (selected === 'Dining Hall Staff') {
+      router.push('/staff/home')
+    } else {
+      router.push('/onboarding/account-creation')
+    }
   }
 
   return (
