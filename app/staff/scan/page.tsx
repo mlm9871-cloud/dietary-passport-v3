@@ -192,7 +192,7 @@ export default function StaffScanPage() {
 
       setScanState('success')
       setTimeout(() => {
-        router.push('/staff/request/' + requestId)
+        router.push('/staff/profile/' + token + '?requestId=' + requestId)
       }, 500)
     } catch (err) {
       console.error('Unexpected scan error:', err)

@@ -82,53 +82,148 @@ export default function PreviewPage() {
     localStorage.setItem('profileSaved', 'true')
     localStorage.setItem('profileCreatedAt', new Date().toISOString())
 
-    // Non-blocking Supabase writes: create dietary_profile, restrictions, qr token
+    // Non-blocking Supabase writes — always attempted regardless of auth state
     ;(async () => {
       try {
-        const supabaseUserId = localStorage.getItem('supabaseUserId')
-        if (!supabaseUserId) {
-          router.push('/student/home')
-          return
+        let userId: string | null = localStorage.getItem('supabaseUserId')
+        const userEmail: string = localStorage.getItem('userEmail') ?? ''
+
+        // If userId missing, try to recover one via auth or direct insert
+        if (!userId && userEmail) {
+          // Attempt 1: sign up
+          try {
+            const tempPassword = crypto.randomUUID()
+            const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+              email: userEmail,
+              password: tempPassword,
+            })
+            if (!signUpError && signUpData.user?.id) {
+              userId = signUpData.user.id
+              localStorage.setItem('supabaseUserId', userId)
+            } else {
+              // Attempt 2: sign in (account may already exist from a prior attempt)
+              const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+                email: userEmail,
+                password: tempPassword,
+              })
+              if (!signInError && signInData.user?.id) {
+                userId = signInData.user.id
+                localStorage.setItem('supabaseUserId', userId)
+              } else {
+                console.error('Auth recovery failed — signUp:', signUpError, '— signIn:', signInError)
+              }
+            }
+          } catch (authErr) {
+            console.error('Auth recovery exception:', authErr)
+          }
+
+          // Fallback: insert directly into users table without auth
+          if (!userId) {
+            try {
+              const { data: insertUserData, error: insertUserError } = await supabase
+                .from('users')
+                .insert({ email: userEmail, full_name: name })
+                .select('id')
+                .single()
+              if (!insertUserError && insertUserData?.id) {
+                userId = insertUserData.id
+                localStorage.setItem('supabaseUserId', userId)
+              } else {
+                console.error('Fallback user insert error:', insertUserError)
+              }
+            } catch (err) {
+              console.error('Fallback user insert exception:', err)
+            }
+          }
         }
 
-        // Insert dietary_profiles row
-        const { data: profileData, error: profileError } = await supabase.from('dietary_profiles').insert([{ user_id: supabaseUserId, display_name: name, notes: null }]).select('id').single()
-        if (profileError) {
-          console.error('Supabase insert dietary_profiles error:', profileError)
+        // No userId available after all attempts — skip Supabase, proceed via finally
+        if (!userId) return
+
+        // Step 3a: check for existing dietary_profile, create if missing
+        let profileId: string | null = null
+        try {
+          const { data: existingProfile } = await supabase
+            .from('dietary_profiles')
+            .select('id')
+            .eq('user_id', userId)
+            .limit(1)
+            .single()
+          if (existingProfile?.id) {
+            profileId = existingProfile.id
+          }
+        } catch { /* not found — will insert below */ }
+
+        if (!profileId) {
+          const { data: newProfile, error: profileError } = await supabase
+            .from('dietary_profiles')
+            .insert({ user_id: userId, display_name: name })
+            .select('id')
+            .single()
+          if (profileError) {
+            console.error('dietary_profiles insert error:', profileError)
+          } else {
+            profileId = newProfile?.id ?? null
+          }
         }
 
-        const dietaryProfileId = profileData?.id ?? null
+        if (!profileId) return
 
-        if (dietaryProfileId) {
-          // Ensure we write name, tier, cross_contact, emoji, category, staff_note, notes
+        // Step 3b: delete existing restrictions to avoid duplicates
+        await supabase
+          .from('dietary_profile_restrictions')
+          .delete()
+          .eq('dietary_profile_id', profileId)
+
+        // Step 3c: insert all current restrictions (no restriction_id)
+        if (details.length > 0) {
           const toInsert = details.map((d) => ({
-            dietary_profile_id: dietaryProfileId,
-            restriction_id: null,
+            dietary_profile_id: profileId,
             name: d.name,
-            tier: d.tier,
-            cross_contact: d.crossContact,
             emoji: d.emoji,
             category: d.category,
+            tier: d.tier,
+            cross_contact: d.crossContact,
             staff_note: d.staffNote,
             notes: d.staffNote,
           }))
-
           try {
-            await supabase.from('dietary_profile_restrictions').insert(toInsert)
+            const { error: restrictionsError } = await supabase
+              .from('dietary_profile_restrictions')
+              .insert(toInsert)
+            if (restrictionsError) console.error('restrictions insert error:', restrictionsError)
           } catch (err) {
-            console.error('Supabase insert dietary_profile_restrictions error:', err)
-          }
-
-          // Generate QR token and insert into qr_tokens
-          try {
-            const token = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2,9)}`
-            await supabase.from('qr_tokens').insert([{ dietary_profile_id: dietaryProfileId, token, expires_at: null }])
-            localStorage.setItem('userQRToken', token)
-            localStorage.setItem('supabaseDietaryProfileId', String(dietaryProfileId))
-          } catch (err) {
-            console.error('Supabase insert qr_tokens error:', err)
+            console.error('restrictions insert exception:', err)
           }
         }
+
+        // Step 3d: check for existing qr_token, create if missing
+        try {
+          const { data: existingToken } = await supabase
+            .from('qr_tokens')
+            .select('token')
+            .eq('dietary_profile_id', profileId)
+            .limit(1)
+            .single()
+          if (existingToken?.token) {
+            localStorage.setItem('userQRToken', existingToken.token)
+          } else {
+            const token =
+              typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+                ? crypto.randomUUID()
+                : `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+            await supabase
+              .from('qr_tokens')
+              .insert({ dietary_profile_id: profileId, token, expires_at: null })
+            localStorage.setItem('userQRToken', token)
+          }
+        } catch (err) {
+          console.error('qr_tokens error:', err)
+        }
+
+        // Step 3e: persist profileId
+        localStorage.setItem('supabaseDietaryProfileId', String(profileId))
+
       } catch (err) {
         console.error('Unexpected Supabase error on save:', err)
       } finally {

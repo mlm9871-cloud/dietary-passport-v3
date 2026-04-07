@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useRoleGuard } from '../../../lib/useRoleGuard'
+import { supabase } from '../../../lib/supabaseClient'
 
 type RestrictionDetail = {
   name: string
@@ -131,9 +132,45 @@ export default function StudentEditPage() {
   }
 
   function commitSave() {
-    localStorage.setItem('restrictionDetails', JSON.stringify(draftRestrictions))
-    setSavedRestrictions(JSON.parse(JSON.stringify(draftRestrictions)))
+    const updatedRestrictions = draftRestrictions
+    localStorage.setItem('restrictionDetails', JSON.stringify(updatedRestrictions))
+    setSavedRestrictions(JSON.parse(JSON.stringify(updatedRestrictions)))
     setHasUnsavedChanges(false)
+
+    // Non-blocking Supabase sync: delete stale rows and re-insert updated ones
+    ;(async () => {
+      try {
+        const profileId = localStorage.getItem('supabaseDietaryProfileId')
+        if (!profileId) return
+
+        // Delete existing restrictions
+        await supabase
+          .from('dietary_profile_restrictions')
+          .delete()
+          .eq('dietary_profile_id', profileId)
+
+        // Re-insert updated restrictions (no restriction_id)
+        if (updatedRestrictions.length > 0) {
+          const toInsert = updatedRestrictions.map((d) => ({
+            dietary_profile_id: profileId,
+            name: d.name,
+            emoji: d.emoji,
+            category: d.category,
+            tier: d.tier,
+            cross_contact: d.crossContact,
+            staff_note: d.staffNote,
+            notes: d.staffNote,
+          }))
+          const { error } = await supabase
+            .from('dietary_profile_restrictions')
+            .insert(toInsert)
+          if (error) console.error('Supabase restrictions sync error:', error)
+        }
+      } catch (err) {
+        console.error('Unexpected Supabase sync error on edit save:', err)
+      }
+    })()
+
     router.push('/student/home')
   }
 

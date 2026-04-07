@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useRoleGuard } from '@/lib/useRoleGuard'
 import { QRCodeSVG } from 'qrcode.react'
+import { supabase } from '@/lib/supabaseClient'
 
 type DiningItem = { name: string; detail: string }
 type DiningStatus = 'safe' | 'limited' | 'unsafe'
@@ -167,6 +168,7 @@ export default function StudentHomePage() {
   const [passportTab, setPassportTab] = useState<'screen' | 'qr'>('screen')
   const [mounted, setMounted] = useState(false)
   const [userQRToken, setUserQRToken] = useState('')
+  const [unreadNotifications, setUnreadNotifications] = useState<{ id: string; type: string; message: string; created_at: string }[]>([])
 
   useEffect(() => {
     const name = localStorage.getItem('userName') || ''
@@ -197,6 +199,52 @@ export default function StudentHomePage() {
 
   useEffect(() => { setMounted(true) }, [])
 
+  useEffect(() => {
+    const userId = localStorage.getItem('supabaseUserId')
+    if (!userId) return
+    ;(async () => {
+      try {
+        const { data, error } = await supabase
+          .from('notifications')
+          .select('id, type, message, created_at')
+          .eq('user_id', userId)
+          .eq('read', false)
+          .order('created_at', { ascending: false })
+          .limit(5)
+        if (error) {
+          console.error('Notifications fetch error:', error)
+          return
+        }
+        setUnreadNotifications(data ?? [])
+      } catch (err) {
+        console.error('Notifications fetch exception:', err)
+      }
+    })()
+  }, [])
+
+  async function markNotificationRead(id: string) {
+    setUnreadNotifications((prev) => prev.filter((n) => n.id !== id))
+    try {
+      await supabase.from('notifications').update({ read: true }).eq('id', id)
+    } catch (err) {
+      console.error('Mark read error:', err)
+    }
+  }
+
+  async function markAllRead() {
+    const userId = localStorage.getItem('supabaseUserId')
+    setUnreadNotifications([])
+    if (!userId) return
+    try {
+      await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('user_id', userId)
+        .eq('read', false)
+    } catch (err) {
+      console.error('Mark all read error:', err)
+    }
+  }
 
   return (
     <div style={{ backgroundColor: '#F8FAFB', minHeight: '100vh' }}>
@@ -232,8 +280,71 @@ export default function StudentHomePage() {
           />
         </div>
 
+        {/* ── NOTIFICATION BANNER ── */}
+        {unreadNotifications.length > 0 && (
+          <div style={{ padding: '12px 20px 0' }}>
+            <div style={{
+              backgroundColor: '#FEF2F2',
+              border: '1px solid #FECACA',
+              borderRadius: 12,
+              padding: '12px 14px',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 10,
+            }}>
+              {/* Warning icon */}
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ flexShrink: 0, marginTop: 1 }}>
+                <circle cx="10" cy="10" r="9" stroke="#DC2626" strokeWidth="1.8" />
+                <path d="M10 6v5M10 13v.5" stroke="#DC2626" strokeWidth="1.8" strokeLinecap="round" />
+              </svg>
+
+              {/* Text */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ margin: '0 0 2px', fontSize: 13, fontWeight: 700, color: '#DC2626' }}>
+                  {unreadNotifications.length === 1
+                    ? 'Accommodation Issue'
+                    : `${unreadNotifications.length} accommodation issues`}
+                </p>
+                <p style={{ margin: 0, fontSize: 12, color: '#6B7280', lineHeight: 1.4,
+                  overflow: 'hidden', display: '-webkit-box',
+                  WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                  {unreadNotifications.length === 1
+                    ? unreadNotifications[0].message
+                    : 'Tap to view'}
+                </p>
+              </div>
+
+              {/* Dismiss button */}
+              <button
+                onClick={() => {
+                  if (unreadNotifications.length === 1) {
+                    markNotificationRead(unreadNotifications[0].id)
+                  } else {
+                    markAllRead()
+                  }
+                }}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  fontSize: 12, color: '#9CA3AF', padding: '2px 0', flexShrink: 0,
+                }}
+              >
+                {unreadNotifications.length === 1 ? 'Dismiss' : 'Dismiss all'}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* ── SHOW PASSPORT BUTTON ── */}
         <div style={{ padding: '16px 20px 0' }}>
+          <div style={{ position: 'relative' }}>
+          {unreadNotifications.length > 0 && (
+            <div style={{
+              position: 'absolute', top: -4, right: -4, zIndex: 1,
+              width: 10, height: 10, borderRadius: '50%',
+              backgroundColor: '#DC2626',
+              border: '2px solid white',
+            }} />
+          )}
           <button
             onClick={() => { setPassportOpen(true); setPassportTab('screen') }}
             style={{
@@ -298,6 +409,7 @@ export default function StudentHomePage() {
               <span style={{ fontSize: 18, color: 'rgba(255,255,255,0.6)' }}>›</span>
             </div>
           </button>
+          </div>
         </div>
 
         {/* ── WHERE TO EAT ── */}
