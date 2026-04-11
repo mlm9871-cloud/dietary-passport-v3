@@ -76,17 +76,12 @@ const MOCK_DINING_HALLS: DiningHall[] = [
   },
 ]
 
-const STATUS_CONFIG: Record<DiningStatus, { icon: string; iconBg: string; labelColor: string; label: string; hoverBorder: string; hoverBg: string }> = {
-  safe:    { icon: '✅', iconBg: '#F0FDF4', labelColor: '#16A34A', label: 'Safe',             hoverBorder: '#86EFAC', hoverBg: '#F0FDF4' },
-  limited: { icon: '⚠️', iconBg: '#FFFBEB', labelColor: '#D97706', label: 'Verify with staff', hoverBorder: '#FCD34D', hoverBg: '#FFFBEB' },
-  unsafe:  { icon: '❌', iconBg: '#FFF5F5', labelColor: '#DC2626', label: 'Not safe',          hoverBorder: '#FCA5A5', hoverBg: '#FFF5F5' },
+const STATUS_CONFIG: Record<DiningStatus, { labelColor: string; label: string; hoverBorder: string; hoverBg: string; accentBorder: string }> = {
+  safe:    { labelColor: '#2D7A50', label: 'Safe for you',        hoverBorder: '#A7C4B5', hoverBg: '#F7FBF9', accentBorder: '#6EAF8A' },
+  limited: { labelColor: '#8A6A1E', label: 'Needs confirmation',  hoverBorder: '#D4BE78', hoverBg: '#FFFDF7', accentBorder: '#C9A84C' },
+  unsafe:  { labelColor: '#A85454', label: 'No safe options',     hoverBorder: '#D4A0A0', hoverBg: '#FEF8F8', accentBorder: '#C97A7A' },
 }
 
-const TIME_BADGE: Record<TimeContext, { bg: string; color: string }> = {
-  open:   { bg: '#DCFCE7', color: '#15803D' },
-  soon:   { bg: '#FEF3C7', color: '#B45309' },
-  closed: { bg: '#FEE2E2', color: '#B91C1C' },
-}
 
 type RestrictionDetail = {
   name: string
@@ -428,7 +423,6 @@ export default function StudentHomePage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {MOCK_DINING_HALLS.map((hall) => {
               const cfg = STATUS_CONFIG[hall.status]
-              const timeBadge = TIME_BADGE[hall.timeContext]
               const isHovered = hoveredCard === hall.id
               return (
                 <button
@@ -440,71 +434,50 @@ export default function StudentHomePage() {
                   onMouseUp={() => setHoveredCard(hall.id)}
                   style={{
                     backgroundColor: isHovered ? cfg.hoverBg : '#FFFFFF',
-                    border: isHovered ? `1.5px solid ${cfg.hoverBorder}` : '1.5px solid #E5E7EB',
+                    borderTop: isHovered ? `1.5px solid ${cfg.hoverBorder}` : '1.5px solid #E5E7EB',
+                    borderRight: isHovered ? `1.5px solid ${cfg.hoverBorder}` : '1.5px solid #E5E7EB',
+                    borderBottom: isHovered ? `1.5px solid ${cfg.hoverBorder}` : '1.5px solid #E5E7EB',
+                    borderLeft: `3px solid ${cfg.accentBorder}`,
                     borderRadius: 13,
                     padding: '12px 14px',
                     display: 'flex',
                     alignItems: 'flex-start',
                     gap: 11,
                     cursor: 'pointer',
-                    transition: 'all 0.15s',
+                    transition: 'background-color 0.15s, border-color 0.15s',
                     width: '100%',
                     textAlign: 'left',
                   }}
                 >
-                  {/* Left — status icon */}
-                  <div style={{
-                    width: 38,
-                    height: 38,
-                    borderRadius: 10,
-                    backgroundColor: cfg.iconBg,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 17,
-                    flexShrink: 0,
-                    marginTop: 1,
-                  }}>
-                    {cfg.icon}
-                  </div>
-
-                  {/* Middle — info */}
+                  {/* Info */}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 2 }}>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 4 }}>
                       {hall.name}
                     </p>
 
-                    {/* Status + time row */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
-                      <span style={{ fontSize: 11, fontWeight: 600, color: cfg.labelColor }}>
-                        {cfg.label}
-                      </span>
-                      <span style={{
-                        fontSize: 10,
-                        fontWeight: 500,
-                        padding: '1px 6px',
-                        borderRadius: 99,
-                        backgroundColor: timeBadge.bg,
-                        color: timeBadge.color,
-                      }}>
-                        {hall.timeLabel}
-                      </span>
-                    </div>
-
-                    {/* Safe count */}
+                    {/* Safe count — primary emphasis */}
                     <p style={{
-                      fontSize: 12,
+                      fontSize: 14,
                       fontWeight: 700,
-                      color: hall.status === 'unsafe' ? '#DC2626' : '#111827',
-                      marginBottom: 1,
+                      color: hall.status === 'unsafe' ? '#A85454' : '#111827',
+                      marginBottom: 2,
                     }}>
                       {hall.status === 'unsafe'
-                        ? '0 safe items'
+                        ? 'No safe options'
                         : `${hall.safeCount} safe ${hall.safeCount === 1 ? 'item' : 'items'} today`}
                     </p>
 
-                    {/* Hours */}
-                    <p style={{ fontSize: 10, color: '#9CA3AF' }}>{hall.hours}</p>
+                    {/* Status label — secondary */}
+                    {hall.status !== 'unsafe' && (
+                      <p style={{ fontSize: 11, fontWeight: 500, color: cfg.labelColor, marginBottom: 3 }}>
+                        {cfg.label}
+                      </p>
+                    )}
+
+                    {/* Hours + time label */}
+                    <p style={{ fontSize: 10, color: '#9CA3AF' }}>
+                      {hall.timeLabel}{hall.hours !== 'Closed' ? ` · ${hall.hours}` : ''}
+                    </p>
                   </div>
 
                   {/* Right — arrow */}
@@ -803,15 +776,12 @@ export default function StudentHomePage() {
 
                 {/* A) Must avoid */}
                 {tier1List.length > 0 && (
-                  <div style={{ backgroundColor: '#FFF5F5', border: '1.5px solid #FECACA', borderRadius: 12, padding: 14, marginBottom: 10 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-                      <div style={{ width: 9, height: 9, borderRadius: '50%', backgroundColor: '#DC2626', flexShrink: 0 }} />
-                      <span style={{ fontSize: 11, fontWeight: 700, color: '#DC2626', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Must avoid</span>
-                    </div>
+                  <div style={{ backgroundColor: '#FAF3F3', border: '1.5px solid #E8C4C4', borderRadius: 12, padding: 14, marginBottom: 10 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: '#B04040', textTransform: 'uppercase', letterSpacing: '0.07em', display: 'block', marginBottom: 10 }}>Must avoid</span>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                       {tier1List.map((r) => (
-                        <span key={r.name} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, backgroundColor: '#FEE2E2', color: '#991B1B', borderRadius: 99, padding: '5px 10px', fontSize: 12, fontWeight: 600 }}>
-                          {r.emoji} {r.name}
+                        <span key={r.name} style={{ backgroundColor: '#F5E4E4', color: '#8C3333', borderRadius: 99, padding: '5px 10px', fontSize: 12, fontWeight: 600 }}>
+                          {r.name}
                         </span>
                       ))}
                     </div>
@@ -820,23 +790,23 @@ export default function StudentHomePage() {
 
                 {/* B) Cross-contact banner */}
                 {hasCrossContact && tier1List.length > 0 && (
-                  <div style={{ backgroundColor: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                    <span style={{ fontSize: 14, flexShrink: 0 }}>⚠️</span>
-                    <span style={{ fontSize: 12, color: '#991B1B', fontWeight: 500 }}>Cross-contact sensitive — trace amounts are a risk</span>
+                  <div style={{ backgroundColor: '#FAF3F3', border: '1px solid #E8C4C4', borderRadius: 10, padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+                      <circle cx="7" cy="7" r="6" stroke="#B04040" strokeWidth="1.4" />
+                      <path d="M7 4.5v3M7 9v.5" stroke="#B04040" strokeWidth="1.4" strokeLinecap="round" />
+                    </svg>
+                    <span style={{ fontSize: 12, color: '#8C3333', fontWeight: 500 }}>Cross-contact sensitive — trace amounts are a risk</span>
                   </div>
                 )}
 
                 {/* C) Try to avoid */}
                 {tier2List.length > 0 && (
-                  <div style={{ backgroundColor: '#FFFBEB', border: '1.5px solid #FDE68A', borderRadius: 12, padding: 14, marginBottom: 10 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-                      <div style={{ width: 9, height: 9, borderRadius: '50%', backgroundColor: '#D97706', flexShrink: 0 }} />
-                      <span style={{ fontSize: 11, fontWeight: 700, color: '#D97706', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Try to avoid</span>
-                    </div>
+                  <div style={{ backgroundColor: '#FFFFFF', border: '1.5px solid #E0C860', borderRadius: 12, padding: 14, marginBottom: 10 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: '#8A6A1E', textTransform: 'uppercase', letterSpacing: '0.07em', display: 'block', marginBottom: 10 }}>Try to avoid</span>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                       {tier2List.map((r) => (
-                        <span key={r.name} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, backgroundColor: '#FEF3C7', color: '#92400E', borderRadius: 99, padding: '5px 10px', fontSize: 12, fontWeight: 600 }}>
-                          {r.emoji} {r.name}
+                        <span key={r.name} style={{ backgroundColor: '#F9F5E8', color: '#6B5018', borderRadius: 99, padding: '5px 10px', fontSize: 12, fontWeight: 500 }}>
+                          {r.name}
                         </span>
                       ))}
                     </div>
@@ -845,15 +815,12 @@ export default function StudentHomePage() {
 
                 {/* D) Preference */}
                 {tier3List.length > 0 && (
-                  <div style={{ backgroundColor: '#F0FDF4', border: '1.5px solid #BBF7D0', borderRadius: 12, padding: 14, marginBottom: 10 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-                      <div style={{ width: 9, height: 9, borderRadius: '50%', backgroundColor: '#16A34A', flexShrink: 0 }} />
-                      <span style={{ fontSize: 11, fontWeight: 700, color: '#16A34A', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Preference</span>
-                    </div>
+                  <div style={{ backgroundColor: '#FFFFFF', border: '1.5px solid #A8D4B8', borderRadius: 12, padding: 14, marginBottom: 10 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: '#2D7A50', textTransform: 'uppercase', letterSpacing: '0.07em', display: 'block', marginBottom: 10 }}>Preference</span>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                       {tier3List.map((r) => (
-                        <span key={r.name} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, backgroundColor: '#DCFCE7', color: '#166534', borderRadius: 99, padding: '5px 10px', fontSize: 12, fontWeight: 600 }}>
-                          {r.emoji} {r.name}
+                        <span key={r.name} style={{ backgroundColor: '#F0F7F3', color: '#1E5C3A', borderRadius: 99, padding: '5px 10px', fontSize: 12, fontWeight: 500 }}>
+                          {r.name}
                         </span>
                       ))}
                     </div>
