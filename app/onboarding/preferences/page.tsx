@@ -46,13 +46,11 @@ function Checkbox({ checked }: { checked: boolean }) {
 }
 
 function PreferenceRow({
-  emoji,
   name,
   desc,
   selected,
   onToggle,
 }: {
-  emoji: string
   name: string
   desc: string
   selected: boolean
@@ -70,20 +68,6 @@ function PreferenceRow({
         cursor: 'pointer',
       }}
     >
-      <div style={{
-        width: 40,
-        height: 40,
-        borderRadius: 10,
-        backgroundColor: selected ? '#E8F5F1' : '#F8FAFB',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: 20,
-        flexShrink: 0,
-      }}>
-        {emoji}
-      </div>
-
       <div className="flex flex-col flex-1 min-w-0" style={{ gap: 1 }}>
         <span style={{ fontSize: 14, fontWeight: 500, color: '#111827' }}>{name}</span>
         <span style={{ fontSize: 12, color: '#6B7280', lineHeight: 1.45 }}>{desc}</span>
@@ -211,7 +195,6 @@ export default function PreferencesPage() {
           {LIFESTYLE.map((p) => (
             <PreferenceRow
               key={p.name}
-              emoji={p.emoji}
               name={p.name}
               desc={p.desc}
               selected={selected.includes(p.name)}
@@ -226,7 +209,6 @@ export default function PreferencesPage() {
           {RELIGIOUS.map((p) => (
             <PreferenceRow
               key={p.name}
-              emoji={p.emoji}
               name={p.name}
               desc={p.desc}
               selected={selected.includes(p.name)}
