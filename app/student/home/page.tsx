@@ -746,8 +746,8 @@ export default function StudentHomePage() {
                 </div>
 
                 {/* Instruction box */}
-                <div style={{ width: '100%', backgroundColor: '#F0FAF7', border: '1px solid #D1FAE5', borderRadius: 10, padding: '12px 14px' }}>
-                  <p style={{ fontSize: 12, color: '#065F46', fontWeight: 500, textAlign: 'center', lineHeight: 1.5 }}>
+                <div style={{ width: '100%', backgroundColor: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: 10, padding: '12px 14px' }}>
+                  <p style={{ fontSize: 12, color: '#111827', fontWeight: 500, textAlign: 'center', lineHeight: 1.5 }}>
                     Staff: scan this code to view full dietary restrictions and instructions
                   </p>
                 </div>
@@ -760,8 +760,8 @@ export default function StudentHomePage() {
                     </p>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
                       {tier1List.map((r) => (
-                        <span key={r.name} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, backgroundColor: '#FEE2E2', color: '#991B1B', borderRadius: 99, padding: '4px 9px', fontSize: 11, fontWeight: 600 }}>
-                          {r.emoji} {r.name}
+                        <span key={r.name} style={{ display: 'inline-flex', alignItems: 'center', backgroundColor: '#FEE2E2', color: '#991B1B', borderRadius: 99, padding: '4px 9px', fontSize: 11, fontWeight: 600 }}>
+                          {r.name}
                         </span>
                       ))}
                     </div>
@@ -843,8 +843,8 @@ export default function StudentHomePage() {
                 )}
 
                 {/* F) Staff instructions */}
-                <div style={{ backgroundColor: '#F0FAF7', border: '1px solid #D1FAE5', borderRadius: 10, padding: '12px 14px', marginBottom: 16 }}>
-                  <p style={{ fontSize: 11, fontWeight: 600, color: '#065F46', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+                <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: 10, padding: '12px 14px', marginBottom: 16 }}>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: '#111827', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
                     Staff instructions
                   </p>
                   {tier1List.length > 0 ? (
@@ -855,8 +855,8 @@ export default function StudentHomePage() {
                         'Please confirm ingredients before serving',
                       ].map((text, i, arr) => (
                         <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 7, marginBottom: i < arr.length - 1 ? 5 : 0 }}>
-                          <div style={{ width: 5, height: 5, borderRadius: '50%', backgroundColor: '#1A7A5E', flexShrink: 0, marginTop: 5 }} />
-                          <p style={{ fontSize: 12, color: '#065F46', lineHeight: 1.45 }}>{text}</p>
+                          <div style={{ width: 5, height: 5, borderRadius: '50%', backgroundColor: '#374151', flexShrink: 0, marginTop: 5 }} />
+                          <p style={{ fontSize: 12, color: '#111827', lineHeight: 1.45 }}>{text}</p>
                         </div>
                       ))}
                     </>
@@ -864,8 +864,8 @@ export default function StudentHomePage() {
                     <>
                       {['Please accommodate preferences where possible', 'Ask if unsure about any items'].map((text, i, arr) => (
                         <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 7, marginBottom: i < arr.length - 1 ? 5 : 0 }}>
-                          <div style={{ width: 5, height: 5, borderRadius: '50%', backgroundColor: '#1A7A5E', flexShrink: 0, marginTop: 5 }} />
-                          <p style={{ fontSize: 12, color: '#065F46', lineHeight: 1.45 }}>{text}</p>
+                          <div style={{ width: 5, height: 5, borderRadius: '50%', backgroundColor: '#374151', flexShrink: 0, marginTop: 5 }} />
+                          <p style={{ fontSize: 12, color: '#111827', lineHeight: 1.45 }}>{text}</p>
                         </div>
                       ))}
                     </>

@@ -21,16 +21,11 @@ function getInitials(name: string): string {
   return ((parts[0][0] ?? '') + (parts[parts.length - 1][0] ?? '')).toUpperCase()
 }
 
-function Dot({ color }: { color: string }) {
-  return <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: color, flexShrink: 0 }} />
-}
-
-function Pill({ emoji, name, bg, color }: { emoji: string; name: string; bg: string; color: string }) {
+function Pill({ name, bg, color }: { name: string; bg: string; color: string }) {
   return (
     <span style={{
       display: 'inline-flex',
       alignItems: 'center',
-      gap: 4,
       backgroundColor: bg,
       color,
       borderRadius: 99,
@@ -38,15 +33,14 @@ function Pill({ emoji, name, bg, color }: { emoji: string; name: string; bg: str
       fontSize: 12,
       fontWeight: 500,
     }}>
-      {emoji} {name}
+      {name}
     </span>
   )
 }
 
-function SectionHeader({ dot, label, color }: { dot: string; label: string; color: string }) {
+function SectionHeader({ label, color }: { label: string; color: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-      <Dot color={dot} />
+    <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
       <span style={{ fontSize: 11, color, textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 600 }}>
         {label}
       </span>
@@ -329,10 +323,10 @@ export default function PreviewPage() {
           {/* B) Must avoid */}
           {tier1.length > 0 && (
             <div style={{ backgroundColor: '#FFF5F5', borderBottom: '1px solid #FEE2E2', padding: 14 }}>
-              <SectionHeader dot="#DC2626" label="Must avoid" color="#DC2626" />
+              <SectionHeader label="Must avoid" color="#DC2626" />
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {tier1.map((d) => (
-                  <Pill key={d.name} emoji={d.emoji} name={d.name} bg="#FEE2E2" color="#991B1B" />
+                  <Pill key={d.name} name={d.name} bg="#FEE2E2" color="#991B1B" />
                 ))}
               </div>
             </div>
@@ -366,10 +360,10 @@ export default function PreviewPage() {
               padding: 14,
               marginTop: 10,
             }}>
-              <SectionHeader dot="#D97706" label="Try to avoid" color="#D97706" />
+              <SectionHeader label="Try to avoid" color="#D97706" />
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {tier2.map((d) => (
-                  <Pill key={d.name} emoji={d.emoji} name={d.name} bg="#FEF3C7" color="#92400E" />
+                  <Pill key={d.name} name={d.name} bg="#FEF3C7" color="#92400E" />
                 ))}
               </div>
             </div>
@@ -382,10 +376,10 @@ export default function PreviewPage() {
               borderBottom: '1px solid #E5E7EB',
               padding: 14,
             }}>
-              <SectionHeader dot="#16A34A" label="Preference" color="#16A34A" />
+              <SectionHeader label="Preference" color="#16A34A" />
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {tier3.map((d) => (
-                  <Pill key={d.name} emoji={d.emoji} name={d.name} bg="#DCFCE7" color="#166534" />
+                  <Pill key={d.name} name={d.name} bg="#DCFCE7" color="#166534" />
                 ))}
               </div>
             </div>
@@ -416,11 +410,11 @@ export default function PreviewPage() {
           {/* G) Staff instruction bar */}
           {!isEmpty && (
             <div style={{
-              backgroundColor: '#F0FAF7',
-              borderTop: '1px solid #D1FAE5',
+              backgroundColor: '#FAFAFA',
+              borderTop: '1px solid #E5E7EB',
               padding: '10px 14px',
             }}>
-              <p style={{ fontSize: 12, color: '#065F46', fontWeight: 500, textAlign: 'center', margin: 0 }}>
+              <p style={{ fontSize: 12, color: '#111827', fontWeight: 500, textAlign: 'center', margin: 0 }}>
                 {tier1.length > 0
                   ? 'Do not serve if uncertain about any must-avoid item'
                   : 'Please accommodate preferences where possible.'}
