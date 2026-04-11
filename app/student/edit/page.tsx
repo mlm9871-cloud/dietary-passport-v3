@@ -248,13 +248,13 @@ export default function StudentEditPage() {
             <div style={{fontSize:14,fontWeight:600,color:'#111827', marginBottom:3}}>{(userName ? userName.split(' ')[0] : 'Your')}'s Dietary Profile</div>
             <div className="flex items-center gap-2 flex-wrap">
               {tierCounts.tier1Count > 0 && (
-                <div style={{background:'#FEE2E2', color:'#991B1B', padding:'2px 8px', borderRadius:99, fontSize:11, fontWeight:500}}>{tierCounts.tier1Count} must avoid</div>
+                <div style={{background:'#F5EDED', color:'#8B4A4A', padding:'2px 8px', borderRadius:99, fontSize:11, fontWeight:500}}>{tierCounts.tier1Count} must avoid</div>
               )}
               {tierCounts.tier2Count > 0 && (
-                <div style={{background:'#FEF3C7', color:'#92400E', padding:'2px 8px', borderRadius:99, fontSize:11, fontWeight:500}}>{tierCounts.tier2Count} try to avoid</div>
+                <div style={{background:'#F5EFE1', color:'#7A5530', padding:'2px 8px', borderRadius:99, fontSize:11, fontWeight:500}}>{tierCounts.tier2Count} try to avoid</div>
               )}
               {tierCounts.tier3Count > 0 && (
-                <div style={{background:'#DCFCE7', color:'#166534', padding:'2px 8px', borderRadius:99, fontSize:11, fontWeight:500}}>{tierCounts.tier3Count} preference</div>
+                <div style={{background:'#E5F2EC', color:'#2E6B48', padding:'2px 8px', borderRadius:99, fontSize:11, fontWeight:500}}>{tierCounts.tier3Count} preference</div>
               )}
             </div>
           </div>
@@ -264,31 +264,26 @@ export default function StudentEditPage() {
         <main className="px-5 pt-4 pb-8">
           <div style={{fontSize:10,fontWeight:600,color:'#9CA3AF',letterSpacing:'0.08em',marginBottom:10}}>YOUR RESTRICTIONS</div>
 
-          {draftRestrictions.map((r, i) => {
+          {[...draftRestrictions]
+            .map((r, i) => ({ r, i }))
+            .sort((a, b) => (a.r.tier ?? 4) - (b.r.tier ?? 4))
+            .map(({ r, i }) => {
             const id = cardIdForIndex(i)
             const expanded = expandedCardId === id
             const severity = r.tier
-            const tag = severity === 1 ? {bg:'#FEE2E2', color:'#DC2626', label:'Must avoid', dot:'#DC2626'}
-              : severity === 2 ? {bg:'#FEF3C7', color:'#D97706', label:'Try to avoid', dot:'#D97706'}
-              : {bg:'#DCFCE7', color:'#16A34A', label:'Preference', dot:'#16A34A'}
+            const tag = severity === 1 ? {color:'#DC2626', label:'Must avoid'}
+              : severity === 2 ? {color:'#D97706', label:'Try to avoid'}
+              : {color:'#16A34A', label:'Preference'}
+            const leftBorderColor = severity === 1 ? '#FCA5A5' : severity === 2 ? '#FCD34D' : '#86EFAC'
 
             return (
-              <div key={id} className="mb-2 rounded-lg overflow-hidden bg-white" style={{border:'1px solid #E5E7EB', cursor:'pointer'}} onClick={() => toggleExpand(id)}>
+              <div key={id} className="mb-2 rounded-lg overflow-hidden bg-white" style={{borderTop:'1px solid #E5E7EB', borderRight:'1px solid #E5E7EB', borderBottom:'1px solid #E5E7EB', borderLeft:`3px solid ${leftBorderColor}`, cursor:'pointer'}} onClick={() => toggleExpand(id)}>
                 <div style={{padding:'12px 14px', display:'flex', alignItems:'center', gap:10}}>
                   <div style={{flex:1, minWidth:0}}>
-                    <div style={{display:'inline-flex', alignItems:'center', gap:5, padding:'3px 8px', borderRadius:6, marginBottom:6, background: severity ? tag.bg : '#F3F4F6'}}>
-                      <span style={{width:7,height:7,borderRadius:99,background: severity ? tag.dot : '#D1D5DB', display:'inline-block'}} />
-                      <span style={{fontSize:10,fontWeight:700, color: severity ? tag.color : '#6B7280', textTransform:'uppercase', letterSpacing:'0.07em'}}>{severity ? tag.label : 'Unspecified'}</span>
-                    </div>
-
                     <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', gap:8}}>
-                      <div style={{display:'flex', alignItems:'center', gap:8}}>
-                        <div style={{display:'flex', alignItems:'center', gap:5}}>
-                          <span style={{fontSize:14}}>{r.emoji}</span>
-                          <span style={{fontSize:13, fontWeight:600, color:'#111827'}}>{r.name}</span>
-                        </div>
-                      </div>
+                      <span style={{fontSize:13, fontWeight:600, color:'#111827'}}>{r.name}</span>
                       <div style={{display:'inline-flex', alignItems:'center', gap:6}}>
+                        <span style={{fontSize:10, fontWeight:500, color: severity ? tag.color : '#6B7280'}}>{severity ? tag.label : 'Unspecified'}</span>
                         {r.crossContact && (
                           <div style={{display:'inline-flex', alignItems:'center', gap:4}}>
                             <span style={{width:6,height:6,background:'#DC2626',borderRadius:99,display:'inline-block'}} />

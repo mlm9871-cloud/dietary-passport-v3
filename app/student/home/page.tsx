@@ -524,7 +524,8 @@ export default function StudentHomePage() {
               [...restrictionDetails]
                 .sort((a, b) => (a.tier ?? 4) - (b.tier ?? 4))
                 .map((r, i, arr) => {
-                  const dotColor = r.tier === 1 ? '#DC2626' : r.tier === 2 ? '#D97706' : '#16A34A'
+                  const leftBorderColor = r.tier === 1 ? '#FCA5A5' : r.tier === 2 ? '#FCD34D' : '#86EFAC'
+                  const metaColor = r.tier === 1 ? '#DC2626' : r.tier === 2 ? '#D97706' : '#16A34A'
                   const meta = r.tier === 1
                     ? (r.crossContact ? 'Must avoid · Cross-contact' : 'Must avoid')
                     : r.tier === 2 ? 'Try to avoid' : 'Preference'
@@ -537,16 +538,13 @@ export default function StudentHomePage() {
                         gap: 9,
                         padding: '10px 13px',
                         borderBottom: i < arr.length - 1 ? '1px solid #F3F4F6' : 'none',
+                        borderLeft: `3px solid ${leftBorderColor}`,
                       }}
                     >
-                      {/* Tier dot */}
-                      <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: dotColor, flexShrink: 0 }} />
-                      {/* Emoji */}
-                      <span style={{ fontSize: 14, flexShrink: 0 }}>{r.emoji}</span>
                       {/* Info */}
-                      <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                         <p style={{ fontSize: 13, fontWeight: 500, color: '#111827' }}>{r.name}</p>
-                        <p style={{ fontSize: 10, color: '#9CA3AF', marginTop: 1 }}>{meta}</p>
+                        <p style={{ fontSize: 10, color: metaColor, fontWeight: 500 }}>{meta}</p>
                       </div>
                       {/* Edit button */}
                       <button
